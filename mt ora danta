@@ -1,0 +1,124 @@
+-- ⚡ Brutal Teleport Multi-Point (Loop + Auto Reset + Notif) by Ganesha Exploit ⚡
+-- ✅ Brutal CFrame instan + delay 0.2 detik per checkpoint
+-- ✅ UI Modern Toggle ON/OFF + Hotkey [T]
+-- ✅ Auto reset 2 detik setelah checkpoint terakhir
+-- ✅ Loop otomatis setelah respawn
+-- ✅ Notifikasi Roblox "Auto Summit by Ganesha Exploit"
+-- ✅ Tidak gampang terdeteksi
+
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- List Teleport Points
+local teleportPoints = {
+    Vector3.new(157.27, 18.88, -300.10),
+    Vector3.new(463.37, 64.38, -559.58),
+    Vector3.new(775.62, 176.38, -832.24),
+    Vector3.new(810.22, 262.19, -437.91),
+    Vector3.new(754.35, 516.38, 743.12),
+    Vector3.new(504.00, 556.38, 771.82),
+    Vector3.new(-62.06, 588.38, 714.04),
+    Vector3.new(-549.25, 552.38, 885.99),
+    Vector3.new(-859.00, 612.38, 1106.61),
+    Vector3.new(-817.26, 756.38, 617.16),
+    Vector3.new(-846.26, 852.38, 229.24),
+    Vector3.new(-919.08, 852.38, -156.13),
+    Vector3.new(-738.07, 984.38, -714.74),
+    Vector3.new(-1018.98, 1244.38, -652.42),
+    Vector3.new(-512.54, 1289.38, -773.55),
+    Vector3.new(-275.62, 1362.84, -712.12),
+    Vector3.new(-154.24, 1544.38, -774.90),
+}
+
+-- Variabel
+local isTeleporting = false
+
+-- UI Modern
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Button = Instance.new("TextButton")
+
+ScreenGui.Parent = game.CoreGui
+Frame.Parent = ScreenGui
+Button.Parent = Frame
+
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Size = UDim2.new(0, 200, 0, 60)
+Frame.Position = UDim2.new(0.05, 0, 0.2, 0)
+Frame.Active = true
+Frame.Draggable = true
+Instance.new("UICorner", Frame)
+
+Button.Text = "⚡ Teleport : OFF"
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Font = Enum.Font.GothamBold
+Button.TextSize = 18
+Instance.new("UICorner", Button)
+
+-- Fungsi Notifikasi Roblox
+local function Notify(msg)
+    StarterGui:SetCore("SendNotification", {
+        Title = "⚡ Auto Summit",
+        Text = msg,
+        Duration = 3
+    })
+end
+
+-- Fungsi Teleport
+local function brutalTeleport()
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    hrp = player.Character.HumanoidRootPart
+
+    -- notif mulai
+    Notify("Auto Summit by Ganesha Exploit")
+
+    for i, point in ipairs(teleportPoints) do
+        if not isTeleporting then break end
+        hrp.CFrame = CFrame.new(point)
+        task.wait(0.2) -- ⏳ delay 0.2 detik per checkpoint
+
+        -- Jika sampai checkpoint terakhir
+        if i == #teleportPoints and isTeleporting then
+            Notify("Resetting... Auto Loop")
+            task.wait(2) -- ⏳ tunggu 2 detik sebelum reset
+            player.Character:BreakJoints() -- 🔄 auto reset
+        end
+    end
+end
+
+-- Tombol UI
+Button.MouseButton1Click:Connect(function()
+    if not isTeleporting then
+        isTeleporting = true
+        Button.Text = "⚡ Teleport : ON"
+        brutalTeleport()
+    else
+        isTeleporting = false
+        Button.Text = "⚡ Teleport : OFF"
+    end
+end)
+
+-- Hotkey [T]
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.T then
+        Button:Activate()
+    end
+end)
+
+-- Respawn Handler (Loop otomatis setelah reset)
+player.CharacterAdded:Connect(function(char)
+    character = char
+    hrp = character:WaitForChild("HumanoidRootPart")
+    if isTeleporting then
+        task.wait(1) -- ⏳ tunggu sedikit biar spawn dulu
+        brutalTeleport()
+    end
+end)
