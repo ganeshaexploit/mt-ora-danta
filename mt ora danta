@@ -1,17 +1,30 @@
--- ⚡ Brutal Teleport Multi-Point (Auto Start + Loop + Auto Reset + Notif) by Ganesha Exploit ⚡
--- ✅ Brutal CFrame instan + delay 0.2 detik per checkpoint
--- ✅ Auto start langsung setelah inject
--- ✅ Auto reset 2 detik setelah checkpoint terakhir
--- ✅ Loop otomatis setelah respawn
--- ✅ Notifikasi Roblox "Auto Summit by Ganesha Exploit"
--- ✅ Tidak gampang terdeteksi
+-- ⚡ Brutal Teleport Multi-Point (Toggle + Auto Reset + Loop + Notif) by Ganesha Exploit ⚡
 
 -- Services
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+
+-- Toggle variable
+local teleportEnabled = false
+local teleportThread = nil
+
+-- UI Modern Sederhana
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoSummitUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 200, 0, 50)
+ToggleButton.Position = UDim2.new(0, 50, 0, 50)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 24
+ToggleButton.Text = "Auto Summit: OFF"
+ToggleButton.Parent = ScreenGui
 
 -- List Teleport Points
 local teleportPoints = {
@@ -43,35 +56,49 @@ local function Notify(msg)
     })
 end
 
--- Fungsi Teleport
+-- Fungsi Brutal Teleport
 local function brutalTeleport()
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-    hrp = player.Character.HumanoidRootPart
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = character.HumanoidRootPart
 
-    -- notif mulai
-    Notify("Auto Summit by Ganesha Exploit")
+    Notify("Auto Summit Started")
 
     for i, point in ipairs(teleportPoints) do
-        hrp.CFrame = CFrame.new(point)
-        task.wait(0.2) -- ⏳ delay 0.2 detik per checkpoint
+        if not teleportEnabled then return end -- stop teleport jika toggle OFF
 
-        -- Jika sampai checkpoint terakhir
+        hrp.CFrame = CFrame.new(point)
+        task.wait(0.2)
+
         if i == #teleportPoints then
             Notify("Resetting... Auto Loop")
-            task.wait(2) -- ⏳ tunggu 2 detik sebelum reset
-            player.Character:BreakJoints() -- 🔄 auto reset
+            task.wait(2)
+            if teleportEnabled and character then
+                character:BreakJoints()
+            end
         end
     end
 end
 
--- Respawn Handler (Loop otomatis setelah reset)
-player.CharacterAdded:Connect(function(char)
-    character = char
-    hrp = character:WaitForChild("HumanoidRootPart")
-    task.wait(1) -- ⏳ tunggu sedikit biar spawn dulu
-    brutalTeleport()
+-- Fungsi toggle
+ToggleButton.MouseButton1Click:Connect(function()
+    teleportEnabled = not teleportEnabled
+    ToggleButton.Text = "Auto Summit: " .. (teleportEnabled and "ON" or "OFF")
+
+    if teleportEnabled and player.Character then
+        -- Start teleport di thread baru agar tidak hang
+        teleportThread = task.spawn(function()
+            brutalTeleport()
+        end)
+    end
 end)
 
--- Auto Start langsung
-task.wait(1)
-brutalTeleport()
+-- Respawn Handler
+player.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    if teleportEnabled then
+        task.spawn(function()
+            brutalTeleport()
+        end)
+    end
+end)
