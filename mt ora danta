@@ -1,6 +1,6 @@
--- ⚡ Brutal Teleport Multi-Point (Loop + Auto Reset + Notif) by Ganesha Exploit ⚡
+-- ⚡ Brutal Teleport Multi-Point (Auto Start + Loop + Auto Reset + Notif) by Ganesha Exploit ⚡
 -- ✅ Brutal CFrame instan + delay 0.2 detik per checkpoint
--- ✅ UI Modern Toggle ON/OFF + Hotkey [T]
+-- ✅ Auto start langsung setelah inject
 -- ✅ Auto reset 2 detik setelah checkpoint terakhir
 -- ✅ Loop otomatis setelah respawn
 -- ✅ Notifikasi Roblox "Auto Summit by Ganesha Exploit"
@@ -8,7 +8,6 @@
 
 -- Services
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -35,33 +34,6 @@ local teleportPoints = {
     Vector3.new(-154.24, 1544.38, -774.90),
 }
 
--- Variabel
-local isTeleporting = false
-
--- UI Modern
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local Button = Instance.new("TextButton")
-
-ScreenGui.Parent = game.CoreGui
-Frame.Parent = ScreenGui
-Button.Parent = Frame
-
-Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Frame.Size = UDim2.new(0, 200, 0, 60)
-Frame.Position = UDim2.new(0.05, 0, 0.2, 0)
-Frame.Active = true
-Frame.Draggable = true
-Instance.new("UICorner", Frame)
-
-Button.Text = "⚡ Teleport : OFF"
-Button.Size = UDim2.new(1, 0, 1, 0)
-Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Button.Font = Enum.Font.GothamBold
-Button.TextSize = 18
-Instance.new("UICorner", Button)
-
 -- Fungsi Notifikasi Roblox
 local function Notify(msg)
     StarterGui:SetCore("SendNotification", {
@@ -80,12 +52,11 @@ local function brutalTeleport()
     Notify("Auto Summit by Ganesha Exploit")
 
     for i, point in ipairs(teleportPoints) do
-        if not isTeleporting then break end
         hrp.CFrame = CFrame.new(point)
         task.wait(0.2) -- ⏳ delay 0.2 detik per checkpoint
 
         -- Jika sampai checkpoint terakhir
-        if i == #teleportPoints and isTeleporting then
+        if i == #teleportPoints then
             Notify("Resetting... Auto Loop")
             task.wait(2) -- ⏳ tunggu 2 detik sebelum reset
             player.Character:BreakJoints() -- 🔄 auto reset
@@ -93,32 +64,14 @@ local function brutalTeleport()
     end
 end
 
--- Tombol UI
-Button.MouseButton1Click:Connect(function()
-    if not isTeleporting then
-        isTeleporting = true
-        Button.Text = "⚡ Teleport : ON"
-        brutalTeleport()
-    else
-        isTeleporting = false
-        Button.Text = "⚡ Teleport : OFF"
-    end
-end)
-
--- Hotkey [T]
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == Enum.KeyCode.T then
-        Button:Activate()
-    end
-end)
-
 -- Respawn Handler (Loop otomatis setelah reset)
 player.CharacterAdded:Connect(function(char)
     character = char
     hrp = character:WaitForChild("HumanoidRootPart")
-    if isTeleporting then
-        task.wait(1) -- ⏳ tunggu sedikit biar spawn dulu
-        brutalTeleport()
-    end
+    task.wait(1) -- ⏳ tunggu sedikit biar spawn dulu
+    brutalTeleport()
 end)
+
+-- Auto Start langsung
+task.wait(1)
+brutalTeleport()
